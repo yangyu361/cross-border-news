@@ -1,0 +1,37 @@
+name: 定时触发器
+
+on:
+  schedule:
+    # 每30分钟检查一次（UTC时间）
+    - cron: '0,30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检查时间并触发
+        env:
+          GH_TOKEN: ${{ secrets.GH_TRIGGER_TOKEN }}
+        run: |
+          # 获取当前UTC时间
+          CURRENT_UTC=$(date -u +"%H%M")
+          echo "当前UTC时间: $CURRENT_UTC"
+
+          # 北京时间 = UTC + 8
+          BEIJING_HOUR=$(date -u -d "+8 hours" +"%H")
+          BEIJING_MINUTE=$(date -u -d "+8 hours" +"%M")
+          echo "北京时间: ${BEIJING_HOUR}:${BEIJING_MINUTE}"
+
+          # 检查是否在 7:00-7:59 之间
+          if [ "$BEIJING_HOUR" = "07" ]; then
+            echo "在7点时段内，触发主workflow..."
+            curl -X POST \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -d '{"ref":"main"}' \
+              "https://api.github.com/repos/yangyu361/cross-border-news/actions/workflows/daily.yml/dispatches"
+            echo "触发完成"
+          else
+            echo "不在7点时段内，跳过"
+          fi
