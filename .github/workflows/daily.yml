@@ -1,55 +1,33 @@
 name: 跨境早报每日推送
 
 on:
-  # 每天 UTC 23:30 = 北京时间 7:30
-  schedule:
-    - cron: '30 23 * * *'
-  # 支持手动触发（测试用）
   workflow_dispatch:
 
 jobs:
   generate-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-
       - name: 安装中文字体
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-wqy-zenhei fonts-wqy-microhei fonts-noto-cjk
-
       - name: 设置 Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: 安装依赖
-        run: |
-          pip install pillow --quiet
-
+        run: pip install pillow --quiet
       - name: 生成今日早报图片
-        run: |
-          python3 generate.py
-
-      - name: 检查图片是否生成
-        run: |
-          ls -la cross_border_daily.png
-          file cross_border_daily.png
-
+        run: python3 generate.py
       - name: 推送到微信
         env:
-          WECHAT_WEBHOOK_KEY: ${{ secrets.WECHAT_WEBHOOK_KEY }}
           SERVERCHAN_SCKEY: ${{ secrets.SERVERCHAN_SCKEY }}
-          DINGTALK_WEBHOOK_KEY: ${{ secrets.DINGTALK_WEBHOOK_KEY }}
-          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
-        run: |
-          python3 push.py
-
-      - name: 上传图片artifact（备份）
+        run: python3 push.py
+      - name: 上传备份
         uses: actions/upload-artifact@v4
         with:
-          name: daily-news-${{ github.run_id }}
+          name: daily-news
           path: cross_border_daily.png
-          retention-days: 30
+          retention-days: 7
