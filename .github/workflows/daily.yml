@@ -1,6 +1,11 @@
 name: 跨境早报每日推送
 
 on:
+  schedule:
+    # UTC 23:30 = 北京 7:30（目标时间）
+    - cron: '30 23 * * *'
+    # UTC 15:30 = 北京 23:30（提前12小时触发，作为保险）
+    - cron: '30 15 * * *'
   workflow_dispatch:
 
 jobs:
