@@ -8,6 +8,7 @@ on:
 jobs:
   generate-and-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
